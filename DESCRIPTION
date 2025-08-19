@@ -2,7 +2,7 @@ Package: shrinkGPR
 Type: Package
 Title: Scalable Gaussian Process Regression with Hierarchical Shrinkage
         Priors
-Version: 1.0.0
+Version: 1.1
 Authors@R: c(
   person("Peter", "Knaus", email = "peter.knaus@wu.ac.at",
     role = c("aut", "cre"), comment = c(ORCID = "0000-0001-6498-7084")))
@@ -15,15 +15,15 @@ Description: Efficient variational inference methods for fully Bayesian Gaussian
   see Knaus (2025) <doi:10.48550/arXiv.2501.13173>.
 License: GPL (>= 2)
 Encoding: UTF-8
-Depends: R (>= 4.0.0)
+Depends: R (>= 4.1.0)
 Imports: gsl, progress, rlang, utils, methods, torch
 RoxygenNote: 7.3.2
-Suggests: testthat (>= 3.0.0)
+Suggests: testthat (>= 3.0.0), shrinkTVP, plotly
 Config/testthat/edition: 3
 SystemRequirements: torch backend, for installation guide see
         https://cran.r-project.org/web/packages/torch/vignettes/installation.html
 NeedsCompilation: no
-Packaged: 2025-01-29 16:42:54 UTC; Peter
-Author: Peter Knaus [aut, cre] (<https://orcid.org/0000-0001-6498-7084>)
+Packaged: 2025-08-19 11:05:16 UTC; Peter
+Author: Peter Knaus [aut, cre] (ORCID: <https://orcid.org/0000-0001-6498-7084>)
 Repository: CRAN
-Date/Publication: 2025-01-30 19:00:02 UTC
+Date/Publication: 2025-08-19 12:20:02 UTC

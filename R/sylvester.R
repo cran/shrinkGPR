@@ -54,7 +54,7 @@ sylvester <- nn_module(
 
 
     if (missing(n_householder)) {
-      n_householder <- d - 1
+      n_householder <- min(5, d - 1)
     }
 
     self$d <- d
@@ -75,17 +75,12 @@ sylvester <- nn_module(
     self$b <- nn_parameter(torch_zeros(self$d)$uniform_(-reg, reg))
 
     triu_mask <- torch_triu(torch_ones(self$d, self$d), diagonal = 1)$requires_grad_(FALSE)
-    # For some reason, torch_arange goes from a to b if dtype is not specified
-    # but from a to b - 1 if dtype is set to torch_long()
-    diag_idx <- torch_arange(1, self$d, dtype = torch_long())$requires_grad_(FALSE)
     identity <- torch_eye(self$d, self$d)$requires_grad_(FALSE)
 
     self$triu_mask <- nn_buffer(triu_mask)
-    self$diag_idx <- nn_buffer(diag_idx)
     self$identity <- nn_buffer(identity)
 
     self$register_buffer("triu_mask", triu_mask)
-    self$register_buffer("diag_idx", diag_idx)
     self$register_buffer("eye", identity)
 
   },
@@ -101,37 +96,30 @@ sylvester <- nn_module(
   forward = function(z) {
 
     # Bring all flow parameters into right shape
-    r1 <- self$both_R * self$triu_mask
-    r2 <- self$both_R$t() * self$triu_mask
-
     diag1 <- self$diag_activation(self$diag1)
     diag2 <- self$diag_activation(self$diag2)
 
-    r1$index_put_(list(self$diag_idx, self$diag_idx), diag1)
-    r2$index_put_(list(self$diag_idx, self$diag_idx), diag2);
+    r1 <- self$both_R * self$triu_mask
+    r1 <- r1 + torch_diag_embed(diag1)
+
+    r2 <- self$both_R$t() * self$triu_mask
+    r2 <- r2 + torch_diag_embed(diag2)
 
     # Orthogonalize q via Householder reflections
-    norm <- torch_norm(self$Q, p = 2, dim = 2)
-    v <- torch_div(self$Q$t(), norm)
-    hh <- self$eye - 2 * torch_matmul(v[,1]$unsqueeze(2), v[,1]$unsqueeze(2)$t())
+    out <- .shrinkGPR_internal$jit_funcs$sylvester_full(
+      z = z,
+      Q_param = self$Q,
+      r1 = r1,
+      r2 = r2,
+      b = self$b,
+      diag1 = diag1,
+      diag2 = diag2,
+      n_householder = as.integer(self$n_householder)
+    )
+    zk <- out[[1]]
+    log_det_J <- out[[2]]
 
-    for (i in 2:self$n_householder) {
-      hh <- torch_matmul(hh, self$eye - 2 * torch_matmul(v[,i]$unsqueeze(2), v[,i]$unsqueeze(2)$t()))
-    }
-
-    # Compute QR1 and QR2
-    rqzb <- torch_matmul(r2, torch_matmul(hh$t(), z$t())) + self$b$unsqueeze(2)
-    zk <- z + torch_matmul(hh, torch_matmul(r1, self$h(rqzb)))$t()
-
-    # Compute log|det J|
-    # Output log_det_j in shape (batch_size) instead of (batch_size,1)
-    diag_j = diag1 * diag2
-    diag_j = self$der_h(rqzb)$t() * diag_j
-    diag_j = diag_j + 1.
-
-    log_diag_j = diag_j$abs()$log()$sum(2)
-
-    return(list(zk = zk, log_diag_j = log_diag_j))
+    return(list(zk = zk, log_diag_j = log_det_J))
 
   }
 )
