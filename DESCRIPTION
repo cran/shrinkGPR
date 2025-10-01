@@ -2,7 +2,7 @@ Package: shrinkGPR
 Type: Package
 Title: Scalable Gaussian Process Regression with Hierarchical Shrinkage
         Priors
-Version: 1.1
+Version: 1.1.1
 Authors@R: c(
   person("Peter", "Knaus", email = "peter.knaus@wu.ac.at",
     role = c("aut", "cre"), comment = c(ORCID = "0000-0001-6498-7084")))
@@ -23,7 +23,7 @@ Config/testthat/edition: 3
 SystemRequirements: torch backend, for installation guide see
         https://cran.r-project.org/web/packages/torch/vignettes/installation.html
 NeedsCompilation: no
-Packaged: 2025-08-19 11:05:16 UTC; Peter
+Packaged: 2025-10-01 16:16:46 UTC; Peter
 Author: Peter Knaus [aut, cre] (ORCID: <https://orcid.org/0000-0001-6498-7084>)
 Repository: CRAN
-Date/Publication: 2025-08-19 12:20:02 UTC
+Date/Publication: 2025-10-01 16:40:02 UTC
