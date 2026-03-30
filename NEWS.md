@@ -1,3 +1,20 @@
+## Changes in Version 2.0.0:
+  - Potentially breaking change: Changed name of global shrinkage parameter from lambda to tau, as to be more consistent with references
+  - Added support for multivariate GPR and TPR under shrinkage
+  - Added method to save and load model objects
+  - Overhauled documentation to be more informative, including model specification
+  - Fixed various bugs
+  - Fixed issues on CRAN with examples being run when torch is not installed 
+  
+## Changes in Version 1.1.3
+  - Fixed issues on CRAN with examples being run when torch is not installed 
+
+## Changes in Version 1.1.2
+  - Moved to torch for R version >= 0.16.0
+  - Made training loop more numerically robust by falling back on robust Cholesky decomposition
+  - Fixed error in documentation for sylvester flows
+  - Fixed issues on CRAN with examples being run when torch is not installed
+
 ## Changes in Version 1.1.1:
   - Fixed typo in prior on global shrinkage parameters
   - Fixed error when generating posterior samples with (optional) linear mean equation

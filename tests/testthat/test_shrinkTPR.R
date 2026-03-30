@@ -43,16 +43,16 @@ test_shrinkTPR <- function(args, eval_points = c(-2, 0, 2), log_pred = FALSE) {
   # Test predictive moments
   moments <- calc_pred_moments(res, newdata = test, nsamp = 100)
   expect_type(moments, "list")
-  expect_named(moments, c("means", "vars"))
+  expect_named(moments, c("means", "vars", "nu"))
   expect_equal(dim(moments$means), c(100, nrow(test)))
   expect_equal(dim(moments$vars), c(100, nrow(test), nrow(test)))
 
   # Test posterior samples
   posterior <- gen_posterior_samples(res, nsamp = 100)
   expect_type(posterior, "list")
-  names_posterior <- c("thetas", "sigma2", "lambda", "nu")
+  names_posterior <- c("thetas", "sigma2", "tau", "nu")
   if (res$model_internals$x_mean) {
-    names_posterior <- c(names_posterior[1:3], "betas", "lambda_mean", names_posterior[4])
+    names_posterior <- c(names_posterior[1:3], "betas", "tau_mean", names_posterior[4])
   }
   expect_named(posterior, names_posterior)
   expect_equal(nrow(posterior$thetas), 100)
@@ -90,8 +90,23 @@ test_shrinkTPR <- function(args, eval_points = c(-2, 0, 2), log_pred = FALSE) {
   }
 
   if (res$model_internals$x_mean) {
-    expect_true(all(c("betas", "lambda_mean") %in% names(posterior)))
+    expect_true(all(c("betas", "tau_mean") %in% names(posterior)))
   }
+
+  # Test saving and loading
+  save_shrinkGPR(res, file = "test_shrinkGPR.pt")
+  res2 <- load_shrinkGPR("test_shrinkGPR.pt")
+
+  # Test that loaded model can be used for further training
+  args$cont_model <- res2
+  res3 <- do.call(shrinkTPR, args)
+
+  # Check that res3 is a shrinkTPR object and has the expected structure
+  expect_s3_class(res3, "shrinkTPR")
+  expect_true("shrinkTPR" %in% class(res3))
+
+  # Clean up saved file
+  file.remove("test_shrinkGPR.pt")
 }
 
 # Define scenarios
@@ -108,6 +123,7 @@ params <- c("display_progress", "auto_stop")
 for (i in seq_len(nrow(scenarios))) {
   for (j in params) {
     args <- formals(shrinkGPR)
+    args$cont_model <- NULL  # Ensure cont_model is NULL for initial test
     args <- args[sapply(args, function(x) !is.null(x))]
 
     args[[j]] <- !args[[j]]
